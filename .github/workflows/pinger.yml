@@ -14,7 +14,7 @@ jobs:
     # === EDIT THIS LINE TO ADD YOUR SITES ===
     # Add your websites here, separated by spaces.
     env:
-      SITES: "https://jiosaavnapi-bok7.onrender.com/ https://jiosaavnapi-tyye.onrender.com"
+      SITES: " https://jiosaavnapi-tyye.onrender.com"
 
     steps:
       - name: Ping Multiple Websites
