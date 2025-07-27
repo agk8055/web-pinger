@@ -2,7 +2,7 @@ name: Advanced Website Pinger
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # Runs every 15 minutes
+    - cron: '*/13 * * * *'  # Runs every 14 minutes
   workflow_dispatch:
 
 jobs:
