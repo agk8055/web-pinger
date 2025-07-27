@@ -1,49 +1,54 @@
-# .github/workflows/pinger.yml
-
 name: Advanced Website Pinger
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/15 * * * *'  # Runs every 15 minutes
   workflow_dispatch:
 
 jobs:
   ping_websites:
     runs-on: ubuntu-latest
-    
-    # === EDIT THIS LINE TO ADD YOUR SITES ===
-    # Add your websites here, separated by spaces.
+
     env:
-      SITES: " https://jiosaavnapi-tyye.onrender.com"
+      # === Add more sites separated by space if needed ===
+      SITES: "https://jiosaavnapi-tyye.onrender.com"
 
     steps:
-      - name: Ping Multiple Websites
+      - name: Ping Multiple Websites with Retry
         run: |
-          # A flag to track if any site is down
           all_sites_up=true
+          max_retries=3
+          retry_delay=5
 
-          echo "Pinging the following sites: $SITES"
+          echo "🕒 Starting site checks at: $(date)"
+          echo "🔍 Pinging sites: $SITES"
           echo "-------------------------------------"
 
-          # Loop through each site listed in the SITES environment variable
           for site in $SITES; do
-            # Use curl to get the HTTP status code
-            # --max-time 10: Set a 10-second timeout for the request
-            # --write-out '%{http_code}': Print only the HTTP status code
-            # --silent --output /dev/null: Suppress all other output
-            status_code=$(curl --max-time 10 -L --write-out '%{http_code}' --silent --output /dev/null "$site")
+            status_code=""
+            echo "🌐 Checking $site"
 
-            # Check if the status code is a success code (2xx or 3xx)
-            if [[ "$status_code" -ge 200 && "$status_code" -lt 400 ]]; then
-              echo "✅ [UP] $site (Status: $status_code)"
-            else
-              echo "❌ [DOWN] $site (Status: $status_code)"
+            for ((i=1; i<=max_retries; i++)); do
+              echo "Attempt $i at $(date)"
+              status_code=$(curl --max-time 25 -L --write-out '%{http_code}' --silent --output /dev/null "$site")
+
+              if [[ "$status_code" -ge 200 && "$status_code" -lt 400 ]]; then
+                echo "✅ [UP] $site (Status: $status_code)"
+                break
+              else
+                echo "⚠️ Attempt $i failed for $site (Status: $status_code)"
+                sleep $retry_delay
+              fi
+            done
+
+            if [[ "$status_code" -lt 200 || "$status_code" -ge 400 ]]; then
+              echo "❌ [DOWN] $site after $max_retries retries (Last Status: $status_code)"
               all_sites_up=false
             fi
+
+            echo "-------------------------------------"
           done
 
-          echo "-------------------------------------"
-          # If any site was down, exit with a failure code to fail the workflow
           if [ "$all_sites_up" = false ]; then
             echo "🚨 At least one site is down. Failing the workflow."
             exit 1
