@@ -30,7 +30,7 @@ jobs:
 
             for ((i=1; i<=max_retries; i++)); do
               echo "Attempt $i at $(date)"
-              status_code=$(curl --max-time 60 -L --write-out '%{http_code}' --silent --output /dev/null "$site")
+              status_code=$(curl --max-time 70 -L --write-out '%{http_code}' --silent --output /dev/null "$site")
 
               if [[ "$status_code" -ge 200 && "$status_code" -lt 400 ]]; then
                 echo "✅ [UP] $site (Status: $status_code)"
